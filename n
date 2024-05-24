@@ -4,6 +4,7 @@ n="$1"
 history=./n_history
 case "$n" in
 [1-9])
+	echo "history "$n" selected"
 	n="$(tail -n+"$n" "$history" | head -n1)"
 	;;
 esac
@@ -15,6 +16,30 @@ fi
 
 t="$(mktemp)"
 
+echo "problem "$n" selected"
+
+# Directory existence check
+if [ -d "$n" ]; then
+	echo "Directory $n already exists."
+	while true; do
+		read -p "Do you want to flush it? (y/n): " yn
+		case $yn in
+		[Yy]*)
+			rm -rf "$n"
+			mkdir "$n"
+			break
+			;;
+		[Nn]*)
+			echo "Exiting the program."
+			exit
+			;;
+		*) ;;
+		esac
+	done
+else
+	mkdir "$n"
+fi
+
 (
 	echo "$n"
 	if [ -f "$history" ]; then
@@ -23,22 +48,20 @@ t="$(mktemp)"
 ) >"$t"
 mv "$t" "$history"
 
-if ! [ -e "$n" ]; then
-	mkdir "$n"
-	cd "$n"
-	cat <<EOF >Makefile
+cd "$n"
+
+# Makefile creation
+cat <<EOF >Makefile
 n = $n
 include ../mk
 EOF
-elif ! [ -d "$n" ]; then
-	mkdir "$n"
-	exit 1
-else
-	cd "$n"
-fi
 
-if ! [ -e input.txt ] && ! [ -e output.txt ]; then
-	python3 ../n_helper.py make_tcs_cat "$n" input.txt output.txt
-fi
+# Making files
+touch input.txt output.txt
+cp ../main.cpp ./"$n".cpp
 
-nvim "$n".cc input.txt output.txt
+# Read problem information
+python3 ../.read.py "$n"
+
+# Open file in editor
+nvim "$n".cpp
