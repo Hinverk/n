@@ -61,7 +61,7 @@ touch input.txt output.txt
 cp ../main.cpp ./"$n".cpp
 
 # Read problem information
-python3 ../.read.py "$n"
+python3 ../.read_probelm.py "$n"
 
 # Open file in editor
 nvim "$n".cpp
